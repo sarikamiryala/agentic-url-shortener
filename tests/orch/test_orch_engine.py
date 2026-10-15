@@ -333,3 +333,18 @@ def test_recovery_rolls_back_a_stage_that_was_mid_flight(make_engine):
         assert e2.audit.verify(rid).ok
     finally:
         e2.close()
+
+
+def test_relative_data_directory_works(tmp_path, monkeypatch):
+    """The default data directory is relative. Stages run subprocesses elsewhere, so paths must be absolute."""
+    from orchestrator.engine import Engine
+
+    monkeypatch.chdir(tmp_path)
+    eng = Engine("data/orchestrator")
+    eng.raise_internal_errors = True
+    try:
+        assert eng.data_dir.is_absolute()
+        rid = new_run(eng, clean=True)
+        assert drive(eng, rid) == "SUCCEEDED"
+    finally:
+        eng.close()

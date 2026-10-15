@@ -65,7 +65,8 @@ class Engine:
         max_workers: int = 4,
         backoff: Callable[[int], float] = lambda attempt: 0.0,
     ) -> None:
-        self.data_dir = Path(data_dir)
+        # Absolute, because stages run subprocesses in other working directories.
+        self.data_dir = Path(data_dir).resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.policy = policy or Policy.load(repo_root / "policy.json")
         self.registry = registry or default_registry()

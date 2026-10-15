@@ -10,7 +10,7 @@ An orchestration layer that takes a requirement, plans it as a dependency graph 
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
 
-python -m pytest                       # 137 tests
+python -m pytest                       # 138 tests
 uvicorn server:app --port 8000         # then open http://localhost:8000
 ```
 
