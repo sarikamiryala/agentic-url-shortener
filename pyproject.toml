@@ -1,0 +1,11 @@
+[project]
+name = "agentic-url-shortener"
+version = "1.0.0"
+description = "URL shortener plus an agentic SDLC orchestrator that builds, changes and gates it."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+norecursedirs = ["catalog", "data", ".git", "node_modules"]
+addopts = "-q -p no:cacheprovider"
