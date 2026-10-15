@@ -2,13 +2,13 @@
 
 ## Testing approach
 
-137 tests, `python -m pytest`, about a minute.
+139 tests, `python -m pytest`, about a minute.
 
 | Layer | Tests | What it covers |
 |---|---|---|
 | Product (`tests/product`) | 50 | Validation (including SSRF-style hosts), storage, service, rate limiter, HTTP API. Each test file declares `# covers:` tags used for requirement traceability |
-| Orchestrator units (`tests/orch/test_orch_units.py`) | 31 | Graph (layers, cycles, re-plan), policy and secret scanner, scoped writes and scope-aware rollback, audit tamper detection, security scan, codebase analysis, metric definitions on synthetic events |
-| Engine behaviour (`test_orch_engine.py`) | 24 | Real agents wrapped to observe or disturb them: parallel overlap (barrier), join ordering, bounded retries, fallback, rework with feedback, futile-rework detection, policy budget, refusal, change freeze, deadline, stop with in-flight work, approval binding, invalid human actions, lineage, early cutoff, restart recovery |
+| Orchestrator units (`tests/orch/test_orch_units.py`) | 32 | Graph (layers, cycles, re-plan), policy and secret scanner, scoped writes and scope-aware rollback, audit tamper detection, security scan, codebase analysis, metric definitions on synthetic events |
+| Engine behaviour (`test_orch_engine.py`) | 25 | Real agents wrapped to observe or disturb them: parallel overlap (barrier), join ordering, bounded retries, relative data directory, fallback, rework with feedback, futile-rework detection, policy budget, refusal, change freeze, deadline, stop with in-flight work, approval binding, invalid human actions, lineage, early cutoff, restart recovery |
 | Scenarios (`test_orch_scenarios.py`) | 17 | All four scenarios run once and inspected: statuses, attribution, bundle contents, re-plan, defect caught by the right stage, amendment re-planning, decision supersession |
 | API (`test_orch_api.py`) | 15 | Full run through HTTP, human-driven run, clarification, stop, error handling, path traversal, admin token, rate limit, run cap, combined server routing |
 

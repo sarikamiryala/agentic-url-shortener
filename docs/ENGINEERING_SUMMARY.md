@@ -6,7 +6,7 @@
 2. **A set of deterministic agents** (`orchestrator/agents/`, `catalog/`) that fill the stages: requirements analysis, design and impact analysis, implementation, test authoring, documentation, security review, verification, migration check, release readiness.
 3. **A URL shortener** (`shortener/`, about 450 lines) that serves as the brownfield baseline and the greenfield output.
 4. **Surfaces**: REST API, dashboard, CLI, combined deployable server.
-5. **137 tests**, CI workflow, Dockerfile, Render blueprint, and these docs.
+5. **139 tests**, CI workflow, Dockerfile, Render blueprint, and these docs.
 
 ## How the assignment's requirements are met
 
