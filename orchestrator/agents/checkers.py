@@ -45,6 +45,10 @@ class VerificationAgent:
                 cwd=root, pythonpath=[root], timeout=180,
             )
             tests, failures = self._parse_junit(xml_path, res.returncode)
+            if tests["total"] == 0:
+                # Nothing ran: say why (missing dependency, import error) instead of a bare "no tests ran".
+                tail = [ln for ln in (res.stderr + "\n" + res.stdout).splitlines() if ln.strip()][-3:]
+                failures.insert(0, {"name": "pytest", "message": " | ".join(tail)[:300] or "pytest produced no output"})
 
             contract = ctx.inputs["design"]["contract"]["endpoints"]
             expected = sorted(f"{e['method']} {e['path']}" for e in contract)

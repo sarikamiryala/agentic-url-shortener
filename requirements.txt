@@ -1,5 +1,8 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.6
-# The orchestrator's verification stage runs the generated tests with pytest, so it is a runtime dependency.
+# The orchestrator's verification stage runs the generated tests in a subprocess. Those tests use
+# pytest and FastAPI's TestClient (which needs httpx), so both are runtime dependencies.
 pytest>=8.0
+httpx>=0.27     # TestClient on Starlette < 1.7
+httpx2>=2.0     # TestClient on Starlette >= 1.7 (current)

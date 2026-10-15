@@ -241,7 +241,8 @@ def migration_ok(c: GateContext) -> GateResult:
 def tests_pass(c: GateContext) -> GateResult:
     t = c.output["tests"]
     if t["total"] == 0:
-        return _fail("no tests ran")
+        why = c.output["failures"][0]["message"] if c.output["failures"] else ""
+        return _fail(f"no tests ran: {why}" if why else "no tests ran")
     if t["failed"] or t["errors"]:
         first = c.output["failures"][0] if c.output["failures"] else {"name": "?", "message": ""}
         return _fail(f"{t['failed']} failed, {t['errors']} errors; first: {first['name']}: {first['message']}")

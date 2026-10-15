@@ -271,3 +271,14 @@ def test_run_metrics_from_synthetic_events():
 def test_unrecovered_failure_is_counted_not_averaged():
     m = metrics.run_metrics([ev(1, 0, "node_started", "a"), ev(2, 1, "node_failed", "a")], None)
     assert m["mttr_seconds"] is None and m["unrecovered_failures"] == 1
+
+
+# ---- diagnosability -------------------------------------------------------------------------
+def test_no_tests_ran_failure_says_why():
+    from orchestrator import gates
+
+    out = {"tests": {"total": 0, "failed": 0, "errors": 1, "passed": 0, "skipped": 0},
+           "failures": [{"name": "pytest", "message": "ModuleNotFoundError: No module named 'httpx2'"}]}
+    ctx = gates.GateContext({}, None, None, out, None, Policy())
+    res = gates.evaluate("tests_pass", ctx)
+    assert not res.passed and "httpx2" in res.detail

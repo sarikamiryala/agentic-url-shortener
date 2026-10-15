@@ -440,13 +440,17 @@ class Engine:
             # Reworked with feedback and produced exactly what already failed: more attempts cannot help.
             n["last_seen"] = seen
             n["status"] = "FAILED"
+            cause = n["feedback"]["failure"]
             n["failure"] = {"kind": "rework_futile", "gate": None,
-                            "detail": "the agent produced an identical artifact after receiving failure feedback"}
+                            "detail": "the agent produced an identical artifact after receiving failure feedback. "
+                                      f"Original failure ({n['feedback']['from']}"
+                                      f"{': ' + cause['gate'] if cause.get('gate') else ''}): {cause['detail'][:300]}"}
             self._emit(run["id"], "rework_futile", f"agent:{n['agent']}", spec.id,
                        {"digest": seen[:12], "feedback_from": n["feedback"]["from"],
                         "feedback_gate": n["feedback"]["failure"].get("gate")})
             self._rollback(run, spec, "rework produced identical output")
-            self._halt(run, f"rework_futile:{spec.id}: identical output after feedback from '{n['feedback']['from']}'; escalating to a human")
+            self._halt(run, f"rework_futile:{spec.id}: identical output after feedback from '{n['feedback']['from']}' "
+                            f"({n['feedback']['failure']['detail'][:200]}); escalating to a human")
             return
         n["last_seen"] = seen
         if spec.id == "design":
