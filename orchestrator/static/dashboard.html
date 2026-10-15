@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orchestrator Dashboard</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--ink:#1b1f24;--mute:#667085;--line:#e3e6ea;--accent:#2457d6;
+--ok:#1a7f4b;--okbg:#e6f4ec;--run:#2457d6;--runbg:#e8effd;--wait:#a15c00;--waitbg:#fff1d6;--bad:#b42318;--badbg:#fde8e6;--idle:#667085;--idlebg:#eef0f3;--code:#f1f3f5}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--panel:#171b21;--ink:#e6e9ee;--mute:#98a2b3;--line:#2a313a;--accent:#7aa2ff;
+--ok:#5fd394;--okbg:#14301f;--run:#7aa2ff;--runbg:#16233d;--wait:#f0b45a;--waitbg:#352a12;--bad:#ff8a80;--badbg:#3a1815;--idle:#98a2b3;--idlebg:#222831;--code:#1e242c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:16px;margin:0}
+header small{color:var(--mute)}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:16px 20px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.layout{grid-template-columns:1fr;padding:12px 16px}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);margin:0 0 10px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.danger{background:var(--bad);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+label{display:block;margin:8px 0 3px;color:var(--mute);font-size:12px}
+.scn{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px}
+.scn b{display:block}
+.scn p{margin:4px 0 8px;color:var(--mute);font-size:12.5px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.runs button{display:block;width:100%;text-align:left;background:transparent;color:var(--ink);border:1px solid var(--line);margin-bottom:6px;padding:8px}
+.runs button.sel{border-color:var(--accent)}
+.runs small{color:var(--mute)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:600}
+.s-SUCCEEDED{background:var(--okbg);color:var(--ok)}
+.s-RUNNING{background:var(--runbg);color:var(--run)}
+.s-WAITING_INPUT,.s-WAITING_APPROVAL,.s-AWAITING_APPROVAL,.s-WAITING_INPUT{background:var(--waitbg);color:var(--wait)}
+.s-FAILED,.s-HALTED{background:var(--badbg);color:var(--bad)}
+.s-PENDING,.s-STALE{background:var(--idlebg);color:var(--idle)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap}
+.tabs button{background:transparent;color:var(--mute);border-radius:6px 6px 0 0;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.banner{padding:10px 12px;border-radius:8px;margin-bottom:12px}
+.banner.bad{background:var(--badbg);color:var(--bad)}
+.banner.wait{background:var(--waitbg);color:var(--wait)}
+.banner.ok{background:var(--okbg);color:var(--ok)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px}
+.card h3{margin:0 0 4px;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card p{margin:4px 0;color:var(--mute);font-size:12.5px}
+.gates span{display:inline-block;margin:2px 4px 2px 0;padding:0 6px;border-radius:4px;font-size:11.5px}
+.gates .p{background:var(--okbg);color:var(--ok)}.gates .f{background:var(--badbg);color:var(--bad)}
+pre,code{background:var(--code);border-radius:6px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{padding:10px;overflow:auto;max-height:520px;margin:0;white-space:pre-wrap;word-break:break-word}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600}
+td.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-word}
+svg text{font:12px system-ui,sans-serif;fill:var(--ink)}
+.graph{overflow:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;padding:6px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.kv div{border:1px solid var(--line);border-radius:8px;padding:8px}
+.kv b{display:block;font-size:18px}.kv span{color:var(--mute);font-size:12px}
+.muted{color:var(--mute)}
+.hide{display:none}
+.filelist{max-height:520px;overflow:auto}
+.filelist button{display:block;width:100%;text-align:left;background:transparent;color:var(--ink);padding:3px 6px;border-radius:4px;font:12px ui-monospace,Menlo,monospace}
+.filelist button.sel{background:var(--runbg)}
+.two{display:grid;grid-template-columns:260px 1fr;gap:12px}
+@media(max-width:700px){.two{grid-template-columns:1fr}}
+.opt{display:block;margin:2px 0;color:var(--ink);font-size:13px}
+.opt input{width:auto;margin-right:6px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Agentic software engineering orchestrator</h1><small>Run scenarios, watch the dependency graph execute, take the human decisions.</small></div>
+  <div class="row"><span class="muted" id="tokenWrap" style="display:none">Admin token <input id="token" type="password" style="width:160px"></span><a href="../" class="muted">home</a></div>
+</header>
+<div class="layout">
+  <aside>
+    <div class="panel"><h2>Scenarios</h2><div id="scenarios"></div>
+      <label class="opt"><input type="checkbox" id="auto" checked> Scripted reviewer decides (uncheck to decide yourself)</label>
+      <label class="opt"><input type="checkbox" id="clean"> Clean run: no injected faults</label>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>Runs</h2><div class="runs" id="runs"><span class="muted">No runs yet.</span></div></div>
+  </aside>
+  <main>
+    <div class="panel" id="empty"><span class="muted">Start a scenario on the left, or pick a run.</span></div>
+    <div class="panel hide" id="detail">
+      <div class="row" style="justify-content:space-between">
+        <div><b id="rTitle"></b> <span id="rStatus" class="pill"></span><br><small class="muted" id="rId"></small></div>
+        <div class="row"><button class="danger" id="stopBtn">Safe-stop</button></div>
+      </div>
+      <p id="rReq" class="muted" style="margin:8px 0"></p>
+      <div id="banner"></div>
+      <div class="tabs" id="tabs"></div>
+      <div id="tab"></div>
+    </div>
+  </main>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pill = s => `<span class="pill s-${esc(s)}">${esc(String(s).replace("_"," ").toLowerCase())}</span>`;
+const fmt = (n, d=2) => n == null ? "n/a" : Number(n).toFixed(d);
+const pct = n => n == null ? "n/a" : (n*100).toFixed(0) + "%";
+let cfg = {}, current = null, tab = "overview", timer = null, cache = {run:null, events:[], metrics:null, verify:null};
+let fileSel = null;
+
+async function api(path, opts = {}) {
+  const headers = {"Content-Type": "application/json"};
+  const t = sessionStorage.getItem("adminToken");
+  if (t) headers["X-Admin-Token"] = t;
+  const r = await fetch("api/" + path, {headers, ...opts});
+  if (!r.ok) { let d = r.statusText; try { d = (await r.json()).detail || d } catch {} throw new Error(d); }
+  const ct = r.headers.get("content-type") || "";
+  return ct.includes("json") ? r.json() : r.text();
+}
+const post = (p, body) => api(p, {method: "POST", body: JSON.stringify(body || {})});
+function toast(msg) { $("#banner").innerHTML = `<div class="banner bad">${esc(msg)}</div>`; }
+
+async function init() {
+  cfg = await api("config");
+  if (cfg.admin_token_required) { $("#tokenWrap").style.display = ""; $("#token").value = sessionStorage.getItem("adminToken") || ""; }
+  $("#token").addEventListener("input", e => sessionStorage.setItem("adminToken", e.target.value));
+  const scs = await api("scenarios");
+  $("#scenarios").innerHTML = scs.map(s => `<div class="scn"><b>${esc(s.title)}</b><p>${esc(s.description)}</p>
+    <button data-sc="${esc(s.id)}">Start</button></div>`).join("");
+  document.querySelectorAll("[data-sc]").forEach(b => b.onclick = async () => {
+    try { const r = await post("runs", {scenario: b.dataset.sc, autopilot: $("#auto").checked, clean: $("#clean").checked}); await select(r.run_id); await loadRuns(); }
+    catch (e) { alert(e.message); }
+  });
+  $("#stopBtn").onclick = async () => { try { await post(`runs/${current}/stop`, {reason: "stopped from dashboard"}); refresh(); } catch (e) { toast(e.message); } };
+  await loadRuns();
+  const hash = location.hash.slice(1);
+  if (hash) select(hash);
+  setInterval(loadRuns, 4000);
+}
+async function loadRuns() {
+  const rs = await api("runs");
+  $("#runs").innerHTML = rs.length ? rs.map(r => `<button data-run="${esc(r.id)}" class="${r.id === current ? "sel" : ""}">
+    <b>${esc(r.title)}</b> ${pill(r.status)}<br><small>${esc(r.id)}</small></button>`).join("") : '<span class="muted">No runs yet.</span>';
+  document.querySelectorAll("[data-run]").forEach(b => b.onclick = () => select(b.dataset.run));
+}
+async function select(id) {
+  current = id; location.hash = id; fileSel = null;
+  $("#empty").classList.add("hide"); $("#detail").classList.remove("hide");
+  await refresh();
+}
+async function refresh() {
+  clearTimeout(timer);
+  if (!current) return;
+  try {
+    const [run, events, m, v] = await Promise.all([api(`runs/${current}`), api(`runs/${current}/events`), api(`runs/${current}/metrics`), api(`runs/${current}/audit/verify`)]);
+    cache = {run, events, metrics: m, verify: v};
+    render();
+    if (["RUNNING"].includes(run.status) || (run.config.autopilot && ["WAITING_INPUT","WAITING_APPROVAL"].includes(run.status)))
+      timer = setTimeout(refresh, 1200);
+    else if (!["SUCCEEDED","HALTED"].includes(run.status)) timer = setTimeout(refresh, 3000);
+  } catch (e) { toast(e.message); }
+}
+
+const TABS = [["overview","Overview"],["timeline","Audit timeline"],["lineage","Artifacts & lineage"],["code","Code"],["summary","Engineering summary"],["metrics","Metrics"]];
+function render() {
+  const {run, verify} = cache;
+  $("#rTitle").textContent = run.title; $("#rStatus").className = "pill s-" + run.status;
+  $("#rStatus").textContent = run.status.replace("_"," ").toLowerCase(); $("#rId").textContent = `${run.id} · ${run.mode} · audit chain ${verify.ok ? "verified (" + verify.events + " events)" : "BROKEN at event " + verify.broken_at}`;
+  $("#rReq").textContent = run.requirement;
+  $("#stopBtn").style.display = ["SUCCEEDED","HALTED"].includes(run.status) ? "none" : "";
+  let b = "";
+  if (run.status === "HALTED") b = `<div class="banner bad"><b>Safe-stopped.</b> ${esc(run.halt_reason)}. Failed stages were rolled back; nothing was released.</div>`;
+  else if (run.status === "SUCCEEDED") b = `<div class="banner ok">Run succeeded. All gates passed and the release was approved.</div>`;
+  else if (run.status === "WAITING_INPUT") b = `<div class="banner wait">Waiting for a clarification from a human.</div>`;
+  else if (run.status === "WAITING_APPROVAL") b = `<div class="banner wait">Waiting for approval: ${esc(run.pending_approvals.join(", "))}.</div>`;
+  $("#banner").innerHTML = b;
+  $("#tabs").innerHTML = TABS.map(([k,l]) => `<button class="${k===tab?"on":""}" data-tab="${k}">${l}</button>`).join("");
+  document.querySelectorAll("[data-tab]").forEach(x => x.onclick = () => { tab = x.dataset.tab; render(); });
+  ({overview, timeline, lineage, code, summary, metrics: metricsTab})[tab]();
+}
+
+// ---- overview ------------------------------------------------------------------------
+const COLORS = {SUCCEEDED:"var(--ok)",RUNNING:"var(--run)",FAILED:"var(--bad)",AWAITING_APPROVAL:"var(--wait)",WAITING_INPUT:"var(--wait)",PENDING:"var(--idle)",STALE:"var(--idle)"};
+function graphSvg(run) {
+  const W = 150, H = 44, GX = 54, GY = 22, pos = {};
+  run.graph.layers.forEach((layer, i) => layer.forEach((id, j) => pos[id] = {x: 10 + i*(W+GX), y: 10 + j*(H+GY)}));
+  const cols = run.graph.layers.length, rows = Math.max(...run.graph.layers.map(l => l.length));
+  const edges = run.graph.edges.map(([a,b]) => { const p = pos[a], q = pos[b]; const x1 = p.x+W, y1 = p.y+H/2, x2 = q.x, y2 = q.y+H/2, mx = (x1+x2)/2;
+    return `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="var(--line)" stroke-width="1.5" marker-end="url(#ar)"/>`; }).join("");
+  const nodes = Object.keys(pos).map(id => { const n = run.nodes[id], p = pos[id], c = COLORS[n.status] || "var(--idle)";
+    return `<g><rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="8" fill="var(--panel)" stroke="${c}" stroke-width="2" ${n.dynamic?'stroke-dasharray="5 3"':''}/>
+    <text x="${p.x+10}" y="${p.y+19}" font-weight="600">${esc(id)}</text><text x="${p.x+10}" y="${p.y+35}" style="fill:${c}">${esc(n.status.toLowerCase().replace("_"," "))}${n.retries||n.rework?` · r${n.retries}/w${n.rework}`:""}</text></g>`; }).join("");
+  return `<div class="graph"><svg width="${10+cols*(W+GX)}" height="${20+rows*(H+GY)}"><defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--mute)"/></marker></defs>${edges}${nodes}</svg>
+  <div class="muted" style="font-size:12px;padding:4px 6px">Stages in the same column have no dependency on each other and run in parallel. Dashed outline: inserted by a dynamic re-plan. r = retries used, w = reworks used.</div></div>`;
+}
+function humanPanel(run) {
+  let h = "";
+  if (run.status === "WAITING_INPUT") {
+    h += `<div class="card" style="margin-bottom:12px"><h3>Clarification needed</h3>` + run.open_questions.map(q => `<div><label>${esc(q.question)}</label>` +
+      (q.options.length ? q.options.map(o => `<label class="opt"><input type="radio" name="q_${esc(q.id)}" value="${esc(o.value)}" ${o.value===q.default?"checked":""}> ${esc(o.label)}${o.supported?"":" (not supported by the available agents)"}</label>`).join("")
+        : `<input data-q="${esc(q.id)}" placeholder="describe the change">`) + (q.note ? `<div class="muted">${esc(q.note)}</div>` : "") + `</div>`).join("") +
+      `<div class="row" style="margin-top:10px"><button id="clarifyBtn">Submit answers</button></div></div>`;
+  }
+  for (const nid of run.pending_approvals) {
+    const n = run.nodes[nid], ap = n.approval;
+    h += `<div class="card" style="margin-bottom:12px"><h3>Approval: ${esc(nid)}</h3><p>Reasons: ${esc(ap.reasons.join("; "))}</p>
+      <pre>${esc(JSON.stringify(ap.review, null, 2))}</pre>
+      <label>Comment</label><input id="cm_${esc(nid)}">
+      <label>If requesting changes, describe the change</label><input id="am_${esc(nid)}" placeholder="e.g. also check destinations when a link is followed">
+      <div class="row" style="margin-top:10px"><button data-ap="${esc(nid)}" data-d="approve">Approve</button>
+      <button class="ghost" data-ap="${esc(nid)}" data-d="request_changes">Request changes</button>
+      <button class="danger" data-ap="${esc(nid)}" data-d="reject">Reject</button></div></div>`;
+  }
+  return h;
+}
+function overview() {
+  const run = cache.run;
+  $("#tab").innerHTML = graphSvg(run) + humanPanel(run) + '<div class="grid">' + Object.values(run.nodes).map(n => `<div class="card">
+    <h3>${esc(n.title)} ${pill(n.status)}</h3>
+    <p>${esc(n.summary || "")}</p>
+    <p>agent: ${esc(n.agent || "n/a")}${n.fallback_active ? " (fallback)" : ""} · attempts ${n.attempt} · retries ${n.retries}/${n.max_retries} · reworks ${n.rework}/${n.max_rework}</p>
+    <p>depends on: ${esc(n.deps.join(", ") || "nothing")}${n.write_scope.length ? " · may write: " + esc(n.write_scope.join(", ")) : ""}</p>
+    <div class="gates">${(n.gates||[]).map(g => `<span class="${g.passed?"p":"f"}" title="${esc(g.detail)}">${g.passed?"✓":"✗"} ${esc(g.gate)}</span>`).join("")}</div>
+    ${n.failure ? `<p style="color:var(--bad)">last failure (${esc(n.failure.kind)}${n.failure.gate ? ": " + esc(n.failure.gate) : ""}): ${esc(n.failure.detail)}</p>` : ""}
+    ${n.commit ? `<p>committed: ${esc(JSON.stringify(n.commit))}</p>` : ""}</div>`).join("") + "</div>";
+  const cb = $("#clarifyBtn");
+  if (cb) cb.onclick = async () => {
+    const answers = {};
+    run.open_questions.forEach(q => { const r = document.querySelector(`input[name="q_${q.id}"]:checked`); const t = document.querySelector(`input[data-q="${q.id}"]`); const v = r ? r.value : t && t.value.trim(); if (v) answers[q.id] = v; });
+    try { await post(`runs/${current}/clarify`, {answers}); refresh(); } catch (e) { toast(e.message); }
+  };
+  document.querySelectorAll("[data-ap]").forEach(btn => btn.onclick = async () => {
+    const nid = btn.dataset.ap, d = btn.dataset.d, am = $("#am_" + nid).value.trim();
+    try { await post(`runs/${current}/approvals/${nid}`, {decision: d, comment: $("#cm_" + nid).value, amendment: am || null}); refresh(); } catch (e) { toast(e.message); }
+  });
+}
+
+// ---- timeline ------------------------------------------------------------------------
+function timeline() {
+  const ev = cache.events, t0 = ev.length ? ev[0].ts : 0;
+  $("#tab").innerHTML = `<p class="muted">Every decision, gate result, retry and human action, hash-chained so edits are detectable. ${ev.length} events.</p>
+  <table><tr><th>#</th><th>+s</th><th>actor</th><th>event</th><th>stage</th><th>detail</th></tr>` + ev.map(e => `<tr><td>${e.seq}</td><td>${(e.ts - t0).toFixed(2)}</td><td>${esc(e.actor)}</td><td><b>${esc(e.type)}</b></td><td>${esc(e.node_id || "")}</td><td class="mono">${esc(JSON.stringify(e.payload)).slice(0, 400)}</td></tr>`).join("") + "</table>";
+}
+
+// ---- lineage -------------------------------------------------------------------------
+async function lineage() {
+  const l = await api(`runs/${current}/lineage`);
+  $("#tab").innerHTML = `<h2>Artifact lineage</h2><p class="muted">Each artifact records the exact upstream artifact versions it was built from.</p>
+  <table><tr><th>artifact</th><th>digest</th><th>built from</th><th></th></tr>` + l.artifacts.map(a => `<tr><td><b>${esc(a.id)}</b></td><td class="mono">${esc(a.digest.slice(0,12))}</td><td class="mono">${esc(Object.values(a.inputs).join(", ") || "(root)")}</td><td><button class="ghost" data-art="${esc(a.id)}">view</button></td></tr>`).join("") + `</table>
+  <div id="artView" style="margin-top:10px"></div>
+  <h2 style="margin-top:18px">Decision records</h2><p class="muted">A superseded decision stays on record with a pointer to its replacement.</p>
+  <table><tr><th>id</th><th>stage</th><th>decision</th><th>choice</th><th>why</th><th>status</th></tr>` + l.decisions.map(d => `<tr><td>${esc(d.id)}</td><td>${esc(d.node)}</td><td>${esc(d.title)}</td><td><b>${esc(d.choice)}</b></td><td>${esc(d.rationale)}</td><td>${d.superseded_by ? "superseded by " + esc(d.superseded_by) : (d.supersedes ? "supersedes " + esc(d.supersedes) : "current")}</td></tr>`).join("") + "</table>";
+  document.querySelectorAll("[data-art]").forEach(b => b.onclick = async () => {
+    const a = await api(`runs/${current}/artifacts/${b.dataset.art}`);
+    $("#artView").innerHTML = `<pre>${esc(a.data ? JSON.stringify(a.data, null, 2) : a.note)}</pre>`;
+  });
+}
+
+// ---- code ----------------------------------------------------------------------------
+async function code() {
+  const files = await api(`runs/${current}/files`);
+  $("#tab").innerHTML = `<div class="row" style="margin-bottom:8px"><button class="ghost" id="showDiff">Diff against the starting codebase</button>
+    <a href="api/runs/${esc(current)}/bundle" class="muted">download release bundle (after approval)</a></div>
+    <div class="two"><div class="filelist">${files.map(f => `<button data-f="${esc(f)}" class="${f===fileSel?"sel":""}">${esc(f)}</button>`).join("")}</div><pre id="fileView">Pick a file.</pre></div>`;
+  document.querySelectorAll("[data-f]").forEach(b => b.onclick = async () => { fileSel = b.dataset.f; $("#fileView").textContent = await api(`runs/${current}/file?path=${encodeURIComponent(fileSel)}`); document.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("sel", x === b)); });
+  $("#showDiff").onclick = async () => { $("#fileView").textContent = await api(`runs/${current}/diff`); };
+}
+async function summary() {
+  try { $("#tab").innerHTML = `<pre style="max-height:none">${esc(await api(`runs/${current}/summary`))}</pre>`; }
+  catch (e) { $("#tab").innerHTML = `<p class="muted">${esc(e.message)}</p>`; }
+}
+
+// ---- metrics -------------------------------------------------------------------------
+async function metricsTab() {
+  const m = cache.metrics, g = await api("metrics");
+  const kv = (o, rows) => '<div class="kv">' + rows.map(([l, v]) => `<div><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("") + "</div>";
+  $("#tab").innerHTML = `<h2>This run</h2>` + kv(m, [["end-to-end latency (s)", fmt(m.end_to_end_seconds)], ["active latency (s)", fmt(m.active_seconds)], ["human wait (s)", fmt(m.human_wait_seconds)],
+      ["stage executions", m.stage_executions], ["retries", m.retries], ["rollbacks", m.rollbacks], ["reworks", m.reworks], ["fallbacks", m.fallbacks], ["re-plans", m.replans],
+      ["policy violations", m.policy_violations], ["early cutoffs", m.early_cutoffs], ["MTTR (s)", fmt(m.mttr_seconds)]]) +
+    `<h2 style="margin-top:16px">Stage time (s)</h2><table>${Object.entries(m.stage_seconds).map(([k,v]) => `<tr><td>${esc(k)}</td><td>${fmt(v)}</td></tr>`).join("")}</table>
+    <h2 style="margin-top:16px">All runs</h2>` + kv(g, [["success rate", pct(g.success_rate)], ["runs", g.runs], ["succeeded / halted", g.succeeded + " / " + g.halted], ["retry frequency", pct(g.retry_frequency)],
+      ["rollback frequency", pct(g.rollback_frequency)], ["rework frequency", pct(g.rework_frequency)], ["MTTR (s)", fmt(g.mttr_seconds)], ["mean e2e (s)", fmt(g.e2e_seconds_mean)]]) +
+    `<p class="muted">${esc(g.note)}</p>`;
+}
+init();
+</script>
+</body>
+</html>

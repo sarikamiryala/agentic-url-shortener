@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Software Engineering System</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--ink:#1b1f24;--mute:#667085;--line:#e3e6ea;--accent:#2457d6;--code:#f1f3f5}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1216;--panel:#171b21;--ink:#e6e9ee;--mute:#98a2b3;--line:#2a313a;--accent:#7aa2ff;--code:#1e242c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:28px;margin:0 0 6px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);margin:0 0 10px}
+p{margin:0 0 12px}.lead{color:var(--mute);font-size:17px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:18px}
+a.btn,button{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:6px;padding:8px 14px;text-decoration:none;font:inherit;cursor:pointer}
+input{font:inherit;width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+code{background:var(--code);padding:1px 5px;border-radius:4px}
+ul{margin:0;padding-left:20px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:200px}
+#out{margin-top:10px;word-break:break-all}
+small{color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Agentic software engineering system</h1>
+  <p class="lead">An orchestration layer that takes a requirement, breaks it into a dependency graph of stages, and drives them through gates, retries, approvals and a hash-chained audit log. The thing it builds is a URL shortener, and that shortener is also running on this page.</p>
+  <div class="panel">
+    <h2>Orchestrator</h2>
+    <p>Start the greenfield, brownfield or ambiguous-requirement scenario and watch the graph run. You can let a scripted reviewer make the human decisions, or make them yourself.</p>
+    <a class="btn" href="/orchestrator/">Open the dashboard</a>
+  </div>
+  <div class="panel">
+    <h2>The shortener (v1, the greenfield output)</h2>
+    <div class="row"><input id="u" placeholder="https://example.org/a/very/long/path" value="https://example.org/a/very/long/path"><button id="go">Shorten</button></div>
+    <p id="out"></p>
+    <small>Rate limited. API: <code>POST /api/links</code>, <code>GET /api/links/{code}/stats</code>, <code>GET /{code}</code> (307 redirect). <a href="/docs">OpenAPI docs</a>.</small>
+  </div>
+</main>
+<script>
+document.getElementById("go").onclick = async () => {
+  const out = document.getElementById("out");
+  try {
+    const r = await fetch("/api/links", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({url: document.getElementById("u").value})});
+    const d = await r.json();
+    out.textContent = "";
+    if (!r.ok) { out.textContent = "Error: " + (typeof d.detail === "string" ? d.detail : JSON.stringify(d.detail)); return; }
+    const a = document.createElement("a"); a.href = "/" + d.code; a.textContent = location.origin + "/" + d.code;
+    out.append(a, " → stats at /api/links/" + d.code + "/stats");
+  } catch (e) { out.textContent = "Request failed: " + e.message; }
+};
+</script>
+</body>
+</html>
