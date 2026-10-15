@@ -1,0 +1,11 @@
+{
+  "approval_required_tags": ["new_system", "public_api_change", "schema_change"],
+  "protected_paths": ["Dockerfile", ".github/**", "requirements*.txt", "pyproject.toml", "policy.json", "render.yaml"],
+  "change_freeze": false,
+  "max_files_per_stage": 40,
+  "max_bytes_per_stage": 400000,
+  "max_policy_violations": 3,
+  "max_run_seconds": 900,
+  "default_max_retries": 2,
+  "default_max_rework": 2
+}
