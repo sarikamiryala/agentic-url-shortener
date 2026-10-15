@@ -1,0 +1,23 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest
+      - name: Run all scenarios end to end
+        run: |
+          for s in greenfield brownfield ambiguous; do python -m orchestrator.cli --data-dir "$RUNNER_TEMP/orch" run $s --autopilot; done
+          python -m orchestrator.cli --data-dir "$RUNNER_TEMP/orch" run drill --autopilot || test $? -eq 1   # the drill must safe-stop
+          python -m orchestrator.cli --data-dir "$RUNNER_TEMP/orch" verify-audit

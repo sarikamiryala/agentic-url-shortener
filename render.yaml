@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: agentic-url-shortener
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: PUBLIC_BASE_URL
+        sync: false          # set to https://<your-service>.onrender.com after the first deploy
+      - key: TRUST_PROXY
+        value: "1"
+      # Optional: add ADMIN_TOKEN to require a token for starting runs and approving. Left unset, anyone with the
+      # link can start scenarios (rate limited and capped), which is what you want for a reviewer demo.
+      - key: DATA_DIR
+        value: /tmp/data     # free tier has no persistent disk: state resets on redeploy and restart
